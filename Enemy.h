@@ -25,8 +25,19 @@ public:
 	// Sets default values for this character's properties
 	AEnemy();
 
-	UPROPERTY(VisibleAnywhere , BluprintReadOnly, Category = "Movement")
+	UPROPERTY(VisibleAnywhere , BlueprintReadOnly, Category = "Movement")
 	EEneymyMovementStatus EnemyMovementStatus;
+
+	FORCEINLINE void SetEnemyMovementStatus(EEneymyMovementStatus status) { EnemyMovementStatus = status; }
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	class USphereComponent* AgroSphere;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	USphereComponent* CombatSpher;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+	class AAIController* AIController;
 
 protected:
 	// Called when the game starts or when spawned
@@ -38,5 +49,17 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	UFUNCTION()
+	virtual void AgroSphereOnoverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void AgroSphereOnoverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
+	virtual void CombatSpherOnoverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	UFUNCTION()
+	virtual void CombatSpherOnoverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	void MoveToTarget(class AMain* Target);
 
 };
