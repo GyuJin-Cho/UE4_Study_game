@@ -60,6 +60,12 @@ public:
 	UFUNCTION()
 	virtual void CombatSpherOnoverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
+	UFUNCTION(BlueprintCallable)
 	void MoveToTarget(class AMain* Target);
 
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category ="AI")
+	bool bOverlappingCombatShpere;
+
+	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite, Category = "AI")
+	AMain* combatTarget;
 };
