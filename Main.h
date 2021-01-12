@@ -35,9 +35,14 @@ public:
 	// Sets default values for this character's properties
 	AMain();
 
-	TArray<FVector> PickupLocations;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	class UParticleSystem* HitParticles;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	class USoundCue* HitSound;
+
+	TArray<FVector> PickupLocations;	
 
 	UFUNCTION(BlueprintCallable)
 	void ShowPickupLocations();
