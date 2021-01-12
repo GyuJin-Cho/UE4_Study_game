@@ -60,6 +60,9 @@ public:
 	UPROPERTY(VisibleAnywhere,BlueprintReadWrite, Category="Combat")
 	class UBoxComponent* CombatCollision;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Combat")
+	class UAnimMontage* CombatMontage;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -95,4 +98,18 @@ public:
 
 	UFUNCTION()
 	void CombatOnoverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintCallable)
+	void ActivateCollision();
+
+	UFUNCTION(BlueprintCallable)
+	void DeactivateCollision();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	bool bAttacking;
+
+	void Attack();
+
+	UFUNCTION(BlueprintCallable)
+	void AttackEnd();
 };

@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Sound/SoundCue.h"
+#include "Animation/AnimInstance.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -49,6 +50,9 @@ void AEnemy::BeginPlay()
 
 	CombatSpher->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::CombatSpherOnoverlapBegin);
 	CombatSpher->OnComponentEndOverlap.AddDynamic(this, &AEnemy::CombatSpherOnoverlapEnd);
+
+	CombatCollision->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::CombatOnoverlapBegin);
+	CombatCollision->OnComponentEndOverlap.AddDynamic(this, &AEnemy::CombatOnoverlapEnd);
 
 	CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	CombatCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
@@ -111,7 +115,7 @@ void AEnemy::CombatSpherOnoverlapBegin(UPrimitiveComponent* OverlappedComponent,
 		{
 			combatTarget = Main;
 			bOverlappingCombatShpere = true;
-			SetEnemyMovementStatus(EEneymyMovementStatus::EMS_Attacking);
+			Attack();
 		}
 		
 	}
@@ -150,16 +154,6 @@ void AEnemy::MoveToTarget(AMain* Target)
 
 		AIController->MoveTo(MoveRequest, &NavPath);
 
-		/** 
-
-		auto PathPoints= NavPath->GetPathPoints();
-		for (auto Point : PathPoints)
-		{
-			FVector Location = Point.Location;
-
-			UKismetSystemLibrary::DrawDebugSphere(this, Location, 25.f, 8, FLinearColor::Red, 10.f, 1.5f);
-		}
-		*/
 	}
 }
 
@@ -192,3 +186,47 @@ void AEnemy::CombatOnoverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor
 {
 
 }
+
+void AEnemy::ActivateCollision()
+{
+	CombatCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	if (SwingSound)
+	{
+		UGameplayStatics::PlaySound2D(this, SwingSound);
+	}
+
+}
+
+void AEnemy::DeactivateCollision()
+{
+	CombatCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void AEnemy::Attack()
+{
+	if (AIController)
+	{
+		AIController->StopMovement();
+		SetEnemyMovementStatus(EEneymyMovementStatus::EMS_Attacking);
+	}
+	if (!bAttacking)
+	{
+		bAttacking = true;
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance)
+		{
+			AnimInstance->Montage_Play(CombatMontage, 1.35f);
+			AnimInstance->Montage_JumpToSection(FName("Attack"), CombatMontage);
+		}
+	}
+}
+
+void AEnemy::AttackEnd()
+{
+	bAttacking = false;
+	if (bOverlappingCombatShpere)
+	{
+		Attack();
+	}
+}
+
