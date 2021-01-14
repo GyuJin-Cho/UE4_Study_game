@@ -11,6 +11,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Sound/SoundCue.h"
 #include "Animation/AnimInstance.h"
+#include "TimerManager.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -29,13 +30,18 @@ AEnemy::AEnemy()
 	CombatCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("CombatCollision"));
 	CombatCollision->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, FName("EnemySocket"));
 
-
+	EnemyMovementStatus=EEneymyMovementStatus::EMS_Idle;
 
 	bOverlappingCombatShpere = false;
 
 	Health = 75.f;
 	MaxHealth = 100.f;
 	Damage = 10.f;
+
+	AttackMinTime=0.5f;
+
+
+	AttackMaxTime=3.5f;
 }
 
 // Called when the game starts or when spawned
@@ -113,6 +119,7 @@ void AEnemy::CombatSpherOnoverlapBegin(UPrimitiveComponent* OverlappedComponent,
 		
 		if (Main)
 		{
+			Main->SetCombatTarget(this);
 			combatTarget = Main;
 			bOverlappingCombatShpere = true;
 			Attack();
@@ -129,14 +136,15 @@ void AEnemy::CombatSpherOnoverlapEnd(UPrimitiveComponent* OverlappedComponent, A
 
 		if (Main)
 		{
+			Main->SetCombatTarget(nullptr);
 			bOverlappingCombatShpere = false;
 			if (EnemyMovementStatus != EEneymyMovementStatus::EMS_Attacking)
 			{
 				MoveToTarget(Main);
 				combatTarget = nullptr;
 			}
+			GetWorldTimerManager().ClearTimer(AttackTimer);
 		}
-
 	}
 }
 
@@ -226,7 +234,8 @@ void AEnemy::AttackEnd()
 	bAttacking = false;
 	if (bOverlappingCombatShpere)
 	{
-		Attack();
+		float AttackTime = FMath::FRandRange(AttackMinTime, AttackMaxTime);
+		GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::Attack, AttackTime);
 	}
 }
 
