@@ -138,9 +138,9 @@ void AEnemy::CombatSpherOnoverlapEnd(UPrimitiveComponent* OverlappedComponent, A
 		{
 			Main->SetCombatTarget(nullptr);
 			bOverlappingCombatShpere = false;
+			MoveToTarget(Main);
 			if (EnemyMovementStatus != EEneymyMovementStatus::EMS_Attacking)
 			{
-				MoveToTarget(Main);
 				combatTarget = nullptr;
 			}
 			GetWorldTimerManager().ClearTimer(AttackTimer);
