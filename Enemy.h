@@ -7,13 +7,14 @@
 #include "Enemy.generated.h"
 
 UENUM(BlueprintType)
-enum class EEneymyMovementStatus :uint8
+enum class EEnemyMovementStatus :uint8
 {
 	EMS_Idle			UMETA(DeplayName = "Idle"),
 	EMS_MoveToTarget	UMETA(DeplayName = "MoveToTarget"),
 	EMS_Attacking		UMETA(DeplayName = "Attacking"),
+	EMS_Dead			UMETA(DeplayName = "Dead"),
 
-	EMS_MAX				UMETA(DeplayName = "DefaultMAX")
+	EMS_MAX				UMETA(DeplayName = "DefaulMAX")
 };
 
 UCLASS()
@@ -26,15 +27,16 @@ public:
 	AEnemy();
 
 	UPROPERTY(VisibleAnywhere , BlueprintReadOnly, Category = "Movement")
-	EEneymyMovementStatus EnemyMovementStatus;
+	EEnemyMovementStatus EnemyMovementStatus;
 
-	FORCEINLINE void SetEnemyMovementStatus(EEneymyMovementStatus status) { EnemyMovementStatus = status; }
+	FORCEINLINE void SetEnemyMovementStatus(EEnemyMovementStatus status) { EnemyMovementStatus = status; }
+	FORCEINLINE EEnemyMovementStatus GetEnemyMovementStatus() { return EnemyMovementStatus; }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	class USphereComponent* AgroSphere;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
-	USphereComponent* CombatSpher;
+	USphereComponent* CombatSphere;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
 	class AAIController* AIController;
@@ -70,6 +72,14 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	float AttackMaxTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Combat")
+	TSubclassOf<UDamageType> DamageTypeClass;
+	
+	FTimerHandle DeathTimer;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category="Combat")
+	float DeathDelay;
 
 protected:
 	// Called when the game starts or when spawned
@@ -120,4 +130,16 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void AttackEnd();
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	void Die();
+
+	UFUNCTION(BlueprintCallable)
+	void DeathEnd();
+
+	UFUNCTION(BlueprintCallable)
+	bool Alive();
+
+	void Disappear();
 };

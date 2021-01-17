@@ -179,17 +179,17 @@ void AMain::Tick(float DeltaTime)
 
 	if (bInterpToEnemy && CombatTarget)
 	{
-		FRotator LookAtYaw = GetLooAtRotationYaw(CombatTarget->GetActorLocation());
+		FRotator LookAtYaw = GetLookAtRotationYaw(CombatTarget->GetActorLocation());
 		FRotator InterpRotation = FMath::RInterpTo(GetActorRotation(), LookAtYaw, DeltaTime, InterpSpeed);
 
 		SetActorRotation(InterpRotation);
 	}
 }
 
-FRotator AMain::GetLooAtRotationYaw(FVector Target)
+FRotator AMain::GetLookAtRotationYaw(FVector Target)
 {
 	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Target);
-	FRotator LookAtRotationYaw(0.f,LookAtRotation.Yaw,0.f);
+	FRotator LookAtRotationYaw(0.f, LookAtRotation.Yaw, 0.f);
 	return LookAtRotationYaw;
 }
 
@@ -293,7 +293,12 @@ void AMain::DecrementHealth(float Amount)
 
 void AMain::Die()
 {
-
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && CombatMontage)
+	{
+		AnimInstance->Montage_Play(CombatMontage, 1.0f);
+		AnimInstance->Montage_JumpToSection(FName("Death"));
+	}
 }
 
 void AMain::IncrementCoins(int32 Amount)
@@ -392,4 +397,11 @@ void AMain::PlaySwingSound()
 void AMain::SetInterpToEnemy(bool Interp)
 {
 	bInterpToEnemy = Interp;
+}
+
+float AMain::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser)
+{
+	DecrementHealth(DamageAmount);
+
+	return DamageAmount;
 }

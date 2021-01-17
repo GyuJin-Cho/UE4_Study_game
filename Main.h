@@ -16,7 +16,7 @@ enum class EMovementStatus : uint8
 };
 
 UENUM(BlueprintType)
-enum class EStaminaStatus : uint8
+enum class EStaminaStatus :uint8
 {
 	ESS_Normal UMETA(DisplayName = "Normal"),
 	ESS_BelowMinimum UMETA(DisplayName = "BelowMinimum"),
@@ -24,6 +24,7 @@ enum class EStaminaStatus : uint8
 	ESS_ExhaustedRecovering UMETA(DisplayName = "ExhaustedRecovering"),
 
 	ESS_MAX UMETA(DisplayName = "DefaultMax")
+
 };
 
 UCLASS()
@@ -70,7 +71,7 @@ public:
 
 	FORCEINLINE void SetCombatTarget(AEnemy* Target) { CombatTarget = Target; };
 
-	FRotator GetLooAtRotationYaw(FVector Target);
+	FRotator GetLookAtRotationYaw(FVector Target);
 
 	/**Set movement status and running speed*/
 	void SetMovementStatus(EMovementStatus Status);
@@ -125,6 +126,8 @@ public:
 	int32 Coins;
 
 	void DecrementHealth(float Amount);
+
+	virtual float TakeDamage(float DamageAmount,struct FDamageEvent const& DamageEvent,class AController* EventInstigator,AActor* DamageCauser) override;
 
 	void IncrementCoins(int32 Amount);
 
