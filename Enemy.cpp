@@ -13,6 +13,7 @@
 #include "Animation/AnimInstance.h"
 #include "TimerManager.h"
 #include "Components/CapsuleComponent.h"
+#include "MainPlayerController.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -101,6 +102,15 @@ void AEnemy::AgroSphereOnoverlapEnd(UPrimitiveComponent* OverlappedComponent, AA
 
 		if (Main)
 		{
+			if (Main->CombatTarget == this)
+			{
+				Main->SetCombatTarget(nullptr);
+			}
+			Main->SetHasCombatTarget(false);
+			if (Main->MainPlayerController)
+			{
+				Main->MainPlayerController->RemoveEnemyHealthBar();
+			}
 			SetEnemyMovementStatus(EEnemyMovementStatus::EMS_Idle);
 			if (AIController)
 			{
@@ -122,6 +132,12 @@ void AEnemy::CombatSpherOnoverlapBegin(UPrimitiveComponent* OverlappedComponent,
 		if (Main)
 		{
 			Main->SetCombatTarget(this);
+			Main->SetHasCombatTarget(true);
+			if (Main->MainPlayerController)
+			{
+				Main->MainPlayerController->DisplayEnemyHealthBar();
+			}
+
 			combatTarget = Main;
 			bOverlappingCombatShpere = true;
 			Attack();
@@ -142,10 +158,7 @@ void AEnemy::CombatSpherOnoverlapEnd(UPrimitiveComponent* OverlappedComponent, A
 			bOverlappingCombatShpere = false;
 			MoveToTarget(Main);
 			combatTarget = nullptr;
-			if (Main->CombatTarget == this)
-			{
-				Main->SetCombatTarget(nullptr);
-			}
+			
 			GetWorldTimerManager().ClearTimer(AttackTimer);
 		}
 	}

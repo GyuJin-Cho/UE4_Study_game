@@ -9,7 +9,7 @@
 UENUM(BlueprintType)
 enum class EWeaponState :uint8
 {
-	EMS_Pickup	     UMETA(DisplayName = "Picup"),
+	EMS_Pickup	     UMETA(DisplayName = "Pickup"),
 	EMS_Equipped	 UMETA(DisplayName = "Equipped"),
 
 	EMS_MAX	 UMETA(DisplayName = "DefaultMax")
