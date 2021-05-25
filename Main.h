@@ -159,6 +159,9 @@ public:
 
 	/** Called for forwards/backwards input*/
 	void MoveForward(float Value);
+
+	bool bMovingForward;
+	bool bMoveingRight;
 	
 	/** Called for side to side input*/
 	void MoveRight(float Value);
