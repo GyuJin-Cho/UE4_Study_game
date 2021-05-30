@@ -335,6 +335,7 @@ void AMain::DecrementHealth(float Amount)
 
 void AMain::Die()
 {
+
 	if (MovementStatus == EMovementStatus::EMS_Dead) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && CombatMontage)
@@ -478,4 +479,48 @@ float AMain::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEve
 	}
 
 	return DamageAmount;
+}
+
+void AMain::UpdateCombatTarget()
+{
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors, EnemyFilter);
+
+	if (OverlappingActors.Num() == 0)
+	{
+		if (MainPlayerController)
+		{
+			MainPlayerController->RemoveEnemyHealthBar();
+		}
+		return;
+	}
+
+	AEnemy* ClosesEnemy = Cast<AEnemy>(OverlappingActors[0]);
+	if (ClosesEnemy)
+	{
+		FVector Location = GetActorLocation();
+		float MinDistance = (ClosesEnemy->GetActorLocation()- Location).Size();
+
+		for (auto Actor : OverlappingActors)
+		{
+			AEnemy* Enemy = Cast<AEnemy>(Actor);
+			if (Enemy)
+			{
+				float DistanceToActor = (Enemy->GetActorLocation() - Location).Size();
+				if (DistanceToActor < MinDistance)
+				{
+					MinDistance = DistanceToActor;
+					ClosesEnemy = Enemy;
+				}
+			}
+		}
+		if (MainPlayerController)
+		{
+			MainPlayerController->DisplayEnemyHealthBar();
+		}
+		SetCombatTarget(ClosesEnemy);
+		bHasCombatTarget = true;
+	}
+
+	
 }
