@@ -11,20 +11,19 @@
 
 APickup::APickup()
 {
-	CoinCount = 1;
+	
 }
 
 void APickup::OnoverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	Super::OnoverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
-	UE_LOG(LogTemp, Warning, TEXT("Pickup::OnOverLapBegine()"));
 	if (OtherActor)
 	{
 		AMain* Main = Cast<AMain>(OtherActor);
 		if (Main)
 		{
-			Main->IncrementCoins(CoinCount);
+			OnPickupBP(Main);
 			Main->PickupLocations.Add(GetActorLocation());
 
 			if (OverlapParticles)
@@ -47,3 +46,4 @@ void APickup::OnoverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* Oth
 
 	UE_LOG(LogTemp, Warning, TEXT("Pickup::OnOverLapEnd()"));
 }
+
