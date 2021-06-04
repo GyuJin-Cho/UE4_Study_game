@@ -1,9 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "Main.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 #include "Engine/World.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -11,56 +12,54 @@
 #include "Weapon.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Animation/AnimInstance.h"
-#include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Enemy.h"
 #include "MainPlayerController.h"
-#include "Containers/Array.h"
+#include "Critter.h"
 
 // Sets default values
 AMain::AMain()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//Create Camera Boom (pulls towards the player if there`s a collision)
-	CameraBoom = CreateAbstractDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
+	// Create Camera Boom (pulls towards the player if there's a collision)
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(GetRootComponent());
 	CameraBoom->TargetArmLength = 600.f; // Camera follows at this distance
 	CameraBoom->bUsePawnControlRotation = true; // Rotate arm based on controller
 
 	// Set size for collision capsule
-	GetCapsuleComponent()->SetCapsuleSize(48.f,105.f);
+	GetCapsuleComponent()->SetCapsuleSize(48.f, 105.f);
 
-	//Create Follow Camera
-	FollowCamera = CreateAbstractDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	// Create Follow Camera
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
-	// Attach the Camera to the end of the boom and let the boom adjust to match
+	// Attach the camera to the end of the boom and let the boom adjust to match
 	// the controller orientation
 	FollowCamera->bUsePawnControlRotation = false;
-
-	//set our turn rates for input
+	// Set our turn rates for input
 	BaseTurnRate = 65.f;
 	BaseLookUpRate = 65.f;
 
-	// Don`t rotate when the controller rotates.
+	// Don't rotate when the controller rotates.
 	// Let that just affect the camera.
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationRoll = false;
 
-	// configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // character moves in the direction of input...
+	// Configure character movement
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.f, 0.0f); // ...at this rotation rate
-	GetCharacterMovement()->JumpZVelocity = 450.f;
+	GetCharacterMovement()->JumpZVelocity = 650.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
-	MaxHealth=100.f;
-	Health=65.f;
-	MaxStamina=150.f;
-	Stamina=120.f;
-	Coins=0;
+	MaxHealth = 100.f;
+	Health = 65.f;
+	MaxStamina = 150.f;
+	Stamina = 120.f;
+	Coins = 0;
 
 	RunningSpeed = 650.f;
 	SprintingSpeed = 950.f;
@@ -80,15 +79,15 @@ AMain::AMain()
 
 	bHasCombatTarget = false;
 
-	bMoveingRight = false;
 	bMovingForward = false;
+	bMoveingRight = false;
 }
 
 // Called when the game starts or when spawned
 void AMain::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	MainPlayerController = Cast<AMainPlayerController>(GetController());
 }
 
@@ -97,8 +96,7 @@ void AMain::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (MovementStatus == EMovementStatus::EMS_Dead)
-		return;
+	if (MovementStatus == EMovementStatus::EMS_Dead) return;
 
 	float DeltaStamina = StaminaDrainRate * DeltaTime;
 
@@ -125,7 +123,7 @@ void AMain::Tick(float DeltaTime)
 				SetMovementStatus(EMovementStatus::EMS_Normal);
 			}
 		}
-		else // Shift Key up
+		else // Shift key up
 		{
 			if (Stamina + DeltaStamina >= MaxStamina)
 			{
@@ -160,7 +158,7 @@ void AMain::Tick(float DeltaTime)
 				}
 			}
 		}
-		else //Shift Key Up
+		else // Shift key up
 		{
 			if (Stamina + DeltaStamina >= MinSprintStamina)
 			{
@@ -179,7 +177,7 @@ void AMain::Tick(float DeltaTime)
 		{
 			Stamina = 0.f;
 		}
-		else //Shift Key Up
+		else // Shift key up
 		{
 			SetStaminaStatus(EStaminaStatus::ESS_ExhaustedRecovering);
 			Stamina += DeltaStamina;
@@ -249,12 +247,14 @@ void AMain::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("TurnRate", this, &AMain::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AMain::LookUpAtRate);
+
 }
 
-void AMain::MoveForward(float Value) 
+
+void AMain::MoveForward(float Value)
 {
 	bMovingForward = false;
-	if ((Controller != nullptr) &&( Value != 0.0f)&&(!bAttacking)&&(MovementStatus!=EMovementStatus::EMS_Dead))
+	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking) && (MovementStatus != EMovementStatus::EMS_Dead))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -265,13 +265,14 @@ void AMain::MoveForward(float Value)
 
 		bMovingForward = true;
 	}
+	
 }
 
 
 void AMain::MoveRight(float Value)
 {
 	bMoveingRight = false;
-	if ((Controller != nullptr) && (Value != 0.0f)&&(!bAttacking) && (MovementStatus != EMovementStatus::EMS_Dead))
+	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking) && (MovementStatus != EMovementStatus::EMS_Dead))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -288,6 +289,7 @@ void AMain::TurnAtRate(float Rate)
 {
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
+
 
 void AMain::LookUpAtRate(float Rate)
 {
@@ -320,6 +322,7 @@ void AMain::LMBUp()
 	bLMBDown = false;
 }
 
+
 void AMain::DecrementHealth(float Amount)
 {
 	if (Health - Amount <= 0.f)
@@ -333,9 +336,25 @@ void AMain::DecrementHealth(float Amount)
 	}
 }
 
+void AMain::IncrementCoins(int32 Amount)
+{
+	Coins += Amount;
+}
+
+void AMain::IncrementHealth(float Amount)
+{
+	if (Health + Amount >= MaxHealth)
+	{
+		Health = MaxHealth;
+	}
+	else
+	{
+		Health += Amount;
+	}
+}
+
 void AMain::Die()
 {
-
 	if (MovementStatus == EMovementStatus::EMS_Dead) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && CombatMontage)
@@ -360,23 +379,6 @@ void AMain::DeathEnd()
 	GetMesh()->bNoSkeletonUpdate = true;
 }
 
-void AMain::IncrementCoins(int32 Amount)
-{
-	Coins += Amount;
-}
-
-void AMain::IncrementHealth(float Amount)
-{
-	if (Health + Amount >= MaxHealth)
-	{
-		Health = MaxHealth;
-	}
-	else
-	{
-		Health += Amount;
-	}
-}
-
 void AMain::SetMovementStatus(EMovementStatus Status)
 {
 	MovementStatus = Status;
@@ -395,6 +397,7 @@ void AMain::ShiftKeyDown()
 {
 	bShiftKeyDown = true;
 }
+
 
 void AMain::ShiftKeyUp()
 {
@@ -415,12 +418,14 @@ void AMain::SetEquippedWeapon(AWeapon* WeaponToSet)
 	{
 		EquippedWeapon->Destroy();
 	}
+
 	EquippedWeapon = WeaponToSet;
+
 }
 
 void AMain::Attack()
 {
-	if (!bAttacking&&MovementStatus!=EMovementStatus::EMS_Dead)
+	if (!bAttacking && MovementStatus != EMovementStatus::EMS_Dead)
 	{
 		bAttacking = true;
 		SetInterpToEnemy(true);
@@ -507,11 +512,11 @@ void AMain::UpdateCombatTarget()
 		return;
 	}
 
-	AEnemy* ClosesEnemy = Cast<AEnemy>(OverlappingActors[0]);
-	if (ClosesEnemy)
+	AEnemy* ClosestEnemy = Cast<AEnemy>(OverlappingActors[0]);
+	if (ClosestEnemy)
 	{
 		FVector Location = GetActorLocation();
-		float MinDistance = (ClosesEnemy->GetActorLocation()- Location).Size();
+		float MinDistance = (ClosestEnemy->GetActorLocation() - Location).Size();
 
 		for (auto Actor : OverlappingActors)
 		{
@@ -522,7 +527,7 @@ void AMain::UpdateCombatTarget()
 				if (DistanceToActor < MinDistance)
 				{
 					MinDistance = DistanceToActor;
-					ClosesEnemy = Enemy;
+					ClosestEnemy = Enemy;
 				}
 			}
 		}
@@ -530,9 +535,22 @@ void AMain::UpdateCombatTarget()
 		{
 			MainPlayerController->DisplayEnemyHealthBar();
 		}
-		SetCombatTarget(ClosesEnemy);
+		SetCombatTarget(ClosestEnemy);
 		bHasCombatTarget = true;
 	}
+}
 
-	
+void AMain::SwitchLevel(FName LevelName)
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		FString CurrentLevel = World->GetMapName();
+
+		FName CurrentLevelName(*CurrentLevel);
+;		if (CurrentLevelName != LevelName)
+		{
+			UGameplayStatics::OpenLevel(World, LevelName);
+		}
+	}
 }

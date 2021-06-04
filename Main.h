@@ -2,6 +2,7 @@
 
 #pragma once
 
+
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Main.generated.h"
@@ -33,19 +34,19 @@ class SECONDPROJECT_API AMain : public ACharacter
 {
 	GENERATED_BODY()
 
-public:
+	public:
 	// Sets default values for this character's properties
 	AMain();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	bool bHasCombatTarget;
 
 	FORCEINLINE void SetHasCombatTarget(bool HasTarget) { bHasCombatTarget = HasTarget; }
 
-	UPROPERTY(BlueprintReadWrite,VisibleAnywhere,Category="Combat")
+	UPROPERTY(BlueprintReadWrite, VisibleAnywhere, Category = "Combat")
 	FVector CombatTargetLocation;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly , Category="Controller")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Controller")
 	class AMainPlayerController* MainPlayerController;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
@@ -54,7 +55,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	class USoundCue* HitSound;
 
-	TArray<FVector> PickupLocations;	
+	TArray<FVector> PickupLocations;
 
 	UFUNCTION(BlueprintCallable)
 	void ShowPickupLocations();
@@ -74,20 +75,22 @@ public:
 	float MinSprintStamina;
 
 	float InterpSpeed;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Combat")
 	bool bInterpToEnemy;
 	void SetInterpToEnemy(bool Interp);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
 	class AEnemy* CombatTarget;
 
-	FORCEINLINE void SetCombatTarget(AEnemy* Target) { CombatTarget = Target; };
+	FORCEINLINE void SetCombatTarget(AEnemy* Target) { CombatTarget = Target; }
 
 	FRotator GetLookAtRotationYaw(FVector Target);
 
-	/**Set movement status and running speed*/
+	/** Set movement status and running speed */
 	void SetMovementStatus(EMovementStatus Status);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category ="Running")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Running")
 	float RunningSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Running")
@@ -95,21 +98,21 @@ public:
 
 	bool bShiftKeyDown;
 
-	/** Pressed down to enable spriniting*/
+	/** Pressed down to enable sprinting */
 	void ShiftKeyDown();
-	
-	/** Released to stop sprinting*/
+
+	/** Released to stop sprinting */
 	void ShiftKeyUp();
 
-	/** Camera boom postioning the camera behind the player */
+	/** Camera boom positioning the camera behind the player */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	/** Follow Camera*/
+	/** Follow Camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
-	/** Base trun rates to scale turning functions for the camera */
+	/** Base turn rates to scale turning functions for the camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float BaseTurnRate;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
@@ -120,28 +123,29 @@ public:
 	/* Player Stats
 	/*
 	*/
-	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category ="Player Stats")
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Stats")
 	float MaxHealth;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
 	float Health;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly,  Category = "Player Stats")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Player Stats")
 	float MaxStamina;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite ,Category = "Player Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
 	float Stamina;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "Player Stats")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Player Stats")
 	int32 Coins;
 
 	void DecrementHealth(float Amount);
 
-	virtual float TakeDamage(float DamageAmount,struct FDamageEvent const& DamageEvent,class AController* EventInstigator,AActor* DamageCauser) override;
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 	UFUNCTION(BlueprintCallable)
 	void IncrementCoins(int32 Amount);
+
 	UFUNCTION(BlueprintCallable)
 	void IncrementHealth(float Amount);
 
@@ -153,29 +157,29 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	/** Called for forwards/backwards input*/
+	/** Called for forwards/backwards input */
 	void MoveForward(float Value);
+
+	/** Called for side to side input */
+	void MoveRight(float Value);
 
 	bool bMovingForward;
 	bool bMoveingRight;
-	
-	/** Called for side to side input*/
-	void MoveRight(float Value);
 
 	/** Called via input to turn at a given rate
-	* @Param Rate this is a normalized rate, i.e. 1.0 means 100% of desired turn rate
+	* @param Rate This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	*/
 	void TurnAtRate(float Rate);
 
-	/** Called via input to Look up/down at a given rate
-	* @Param Rate this is a normalized rate, i.e. 1.0 means 100% of desired look up/down rate
+	/** Called via input to look up/down at a given rate
+	* @param Rate This is a normalized rate, i.e. 1.0 means 100% of desired look up/down rate
 	*/
 	void LookUpAtRate(float Rate);
 
@@ -183,18 +187,18 @@ public:
 	void LMBDown();
 	void LMBUp();
 
+
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Items")
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = Items)
 	class AWeapon* EquippedWeapon;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Items")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Items)
 	class AItem* ActiveOverlappingItem;
 
 	void SetEquippedWeapon(AWeapon* WeaponToSet);
-	FORCEINLINE AWeapon* GetEquippedWeapon() { return EquippedWeapon; };
-	FORCEINLINE void SetActiveOverlappingItem(AItem* Item) { ActiveOverlappingItem=Item; };
+	FORCEINLINE void SetActiveOverlappingItem(AItem* Item) { ActiveOverlappingItem = Item; }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Anims")
 	bool bAttacking;
@@ -204,7 +208,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void AttackEnd();
 
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Anims")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Anims")
 	class UAnimMontage* CombatMontage;
 
 	UFUNCTION(BlueprintCallable)
@@ -213,9 +217,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void DeathEnd();
 
-
 	void UpdateCombatTarget();
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite,Category="Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	TSubclassOf<AEnemy> EnemyFilter;
+
+	void SwitchLevel(FName LevelName);
 };
