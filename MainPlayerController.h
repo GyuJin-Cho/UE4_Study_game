@@ -38,13 +38,16 @@ public:
 
 	bool bPauseMenuVisible;
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void DisplayPauseMenu();
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "HUD")
 	void RemovePauseMenu();
 
 	bool bEnemyHealthBarVisible;
-
 	void DisplayEnemyHealthBar();
 	void RemoveEnemyHealthBar();
+
 	void TogglePauseMenu();
 
 	FVector EnemyLocation;
