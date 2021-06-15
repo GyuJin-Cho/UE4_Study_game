@@ -249,18 +249,47 @@ void AMain::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMain::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMain::MoveRight);
 
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+	PlayerInputComponent->BindAxis("Turn", this, &AMain::Turn);
+	PlayerInputComponent->BindAxis("LookUp", this, &AMain::LookUp);
 	PlayerInputComponent->BindAxis("TurnRate", this, &AMain::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AMain::LookUpAtRate);
 
 }
 
+bool AMain::CanMove(float Value)
+{
+	if (MainPlayerController)
+	{
+		return (Value != 0.0f)
+			&& (!bAttacking)
+			&& (MovementStatus != EMovementStatus::EMS_Dead)
+			&&!MainPlayerController->bPauseMenuVisible;
+	}
+	else
+		return false;
+}
 
+/** Called for Yaw rotation input */
+void AMain::Turn(float Value)
+{
+	if (CanMove(Value))
+	{
+		AddControllerYawInput(Value);
+	}
+}
+
+/** Called for Pitch rotation input */
+void AMain::LookUp(float Value)
+{
+	if (CanMove(Value))
+	{
+		AddControllerPitchInput(Value);
+	}
+}
 void AMain::MoveForward(float Value)
 {
 	bMovingForward = false;
-	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking) && (MovementStatus != EMovementStatus::EMS_Dead))
+	if (CanMove(Value))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -278,7 +307,7 @@ void AMain::MoveForward(float Value)
 void AMain::MoveRight(float Value)
 {
 	bMoveingRight = false;
-	if ((Controller != nullptr) && (Value != 0.0f) && (!bAttacking) && (MovementStatus != EMovementStatus::EMS_Dead))
+	if (CanMove(Value))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -307,6 +336,10 @@ void AMain::LMBDown()
 	bLMBDown = true;
 
 	if (MovementStatus == EMovementStatus::EMS_Dead) return;
+
+	if (MainPlayerController) 
+		if (MainPlayerController->bPauseMenuVisible) return;
+
 
 	if (ActiveOverlappingItem)
 	{
@@ -385,6 +418,9 @@ void AMain::Die()
 
 void AMain::Jump()
 {
+
+	if (MainPlayerController)
+		if (MainPlayerController->bPauseMenuVisible) return;
 	if (MovementStatus != EMovementStatus::EMS_Dead)
 	{
 		ACharacter::Jump();
