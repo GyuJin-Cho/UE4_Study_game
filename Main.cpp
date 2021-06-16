@@ -406,6 +406,8 @@ void AMain::IncrementHealth(float Amount)
 
 void AMain::Die()
 {
+	if (MovementStatus == EMovementStatus::EMS_Dead)
+		return;
 	if (MovementStatus == EMovementStatus::EMS_Dead) return;
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance && CombatMontage)
@@ -657,11 +659,14 @@ void AMain::LoadGame(bool SetPosition)
 	
 		 }
 	 }
-	 
 
 	 if (SetPosition)
 	 {
 		 SetActorLocation(LoadGameInstance->CharacterStats.Location);
 		 SetActorRotation(LoadGameInstance->CharacterStats.Rotation);
 	 }
+
+	 SetMovementStatus(EMovementStatus::EMS_Normal);
+	 GetMesh()->bPauseAnims = false;
+	 GetMesh()->bNoSkeletonUpdate = false;
 }
