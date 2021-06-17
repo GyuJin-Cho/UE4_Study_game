@@ -92,6 +92,13 @@ void AMain::BeginPlay()
 	Super::BeginPlay();
 
 	MainPlayerController = Cast<AMainPlayerController>(GetController());
+
+	LoadGameNoSwitch();
+
+	if (MainPlayerController)
+	{
+		MainPlayerController->GameModeOnly();
+	}
 }
 
 // Called every frame
@@ -621,6 +628,11 @@ void AMain::SaveGame()
 	SaveGameInstance->CharacterStats.MaxStamina = MaxStamina;
 	SaveGameInstance->CharacterStats.Coins = Coins;
 
+	FString MapName = GetWorld()->GetMapName();
+	MapName.RemoveFromStart(GetWorld()->StreamingLevelsPrefix);
+
+	SaveGameInstance->CharacterStats.LevelName = MapName;
+
 	if (EquippedWeapon)
 	{
 		SaveGameInstance->CharacterStats.WeaponName = EquippedWeapon->Name;
@@ -669,4 +681,44 @@ void AMain::LoadGame(bool SetPosition)
 	 SetMovementStatus(EMovementStatus::EMS_Normal);
 	 GetMesh()->bPauseAnims = false;
 	 GetMesh()->bNoSkeletonUpdate = false;
+
+	 if (LoadGameInstance->CharacterStats.LevelName != TEXT(""))
+	 {
+		 FName LevelName(*LoadGameInstance->CharacterStats.LevelName);
+
+		 SwitchLevel(LevelName);
+	 }
+}
+
+void AMain::LoadGameNoSwitch()
+{
+	USecondSaveGame* LoadGameInstance = Cast<USecondSaveGame>(UGameplayStatics::CreateSaveGameObject(USecondSaveGame::StaticClass()));
+
+	LoadGameInstance = Cast<USecondSaveGame>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->PlayerName, LoadGameInstance->UserIndex));
+
+	Health = LoadGameInstance->CharacterStats.Health;
+	MaxHealth = LoadGameInstance->CharacterStats.MaxHealth;
+	Stamina = LoadGameInstance->CharacterStats.Stamina;
+	MaxStamina = LoadGameInstance->CharacterStats.MaxStamina;
+	Coins = LoadGameInstance->CharacterStats.Coins;
+
+	if (WeaponStorage)
+	{
+		AItemStorage* Weapons = GetWorld()->SpawnActor<AItemStorage>(WeaponStorage);
+		if (Weapons)
+		{
+			FString WeaponName = LoadGameInstance->CharacterStats.WeaponName;
+
+			if (Weapons->WeaponMap.Contains(WeaponName))
+			{
+				AWeapon* WeaponToEquip = GetWorld()->SpawnActor<AWeapon>(Weapons->WeaponMap[WeaponName]);
+				WeaponToEquip->Equip(this);
+			}
+
+		}
+	}
+
+	SetMovementStatus(EMovementStatus::EMS_Normal);
+	GetMesh()->bPauseAnims = false;
+	GetMesh()->bNoSkeletonUpdate = false;
 }

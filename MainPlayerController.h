@@ -45,12 +45,15 @@ public:
 	void RemovePauseMenu();
 
 	bool bEnemyHealthBarVisible;
+
 	void DisplayEnemyHealthBar();
 	void RemoveEnemyHealthBar();
 
 	void TogglePauseMenu();
 
 	FVector EnemyLocation;
+
+	void GameModeOnly();
 
 protected:
 	virtual void BeginPlay() override;
